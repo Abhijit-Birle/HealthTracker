@@ -1,0 +1,32 @@
+name: health_tracker_poc
+description: AI-powered HealthTracker POC (Flutter iOS first)
+publish_to: "none"
+version: 0.1.0+1
+
+environment:
+  sdk: ">=2.17.0 <3.0.0"
+
+dependencies: 
+  flutter:
+    sdk: flutter
+
+  provider: ^6.0.5
+  http: ^1.6.0
+  health: ^10.0.0
+  cached_network_image: ^3.2.3
+  flutter_dotenv: ^5.0.2
+  intl: ^0.18.0
+  lottie: ^3.1.0  # Added for animations
+  google_fonts: ^6.1.0 # Recommended for the look
+  image_picker: ^1.0.7
+  rive: ^0.13.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/lottie_animation.lottie
