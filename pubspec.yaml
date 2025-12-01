@@ -20,6 +20,7 @@ dependencies:
   google_fonts: ^6.1.0 # Recommended for the look
   image_picker: ^1.0.7
   rive: ^0.13.0
+  uuid: ^3.0.0
 
 dev_dependencies:
   flutter_test:
@@ -30,3 +31,4 @@ flutter:
   uses-material-design: true
   assets:
     - assets/lottie_animation.lottie
+    - .env
