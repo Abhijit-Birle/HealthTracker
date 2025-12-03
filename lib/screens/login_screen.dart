@@ -1,54 +1,119 @@
+// lib/screens/login_screen.dart
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../providers/auth_provider.dart';
+import '../services/health_service.dart';
+import 'main_scaffold.dart';
 
 class LoginScreen extends StatefulWidget {
-  static const routeName = '/login';
-  const LoginScreen({Key? key}) : super(key: key);   // <-- add const
+  final String backendBase;
+  final String authToken;
+
+  const LoginScreen({Key? key, required this.backendBase, this.authToken = ''}) : super(key: key);
+
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _emailCtr = TextEditingController();
-  final _nameCtr = TextEditingController();
+  final TextEditingController _emailCtrl = TextEditingController();
+  bool _loading = false;
+  String? _error;
 
   @override
   void dispose() {
-    _emailCtr.dispose();
-    _nameCtr.dispose();
+    _emailCtrl.dispose();
     super.dispose();
   }
 
-  void _submit() async {
-    final auth = Provider.of<AuthProvider>(context, listen: false);
+  Future<void> _onSignInPressed() async {
+    final email = _emailCtrl.text.trim();
+    if (email.isEmpty) {
+      setState(() => _error = 'Please enter email (or use Skip for anonymous).');
+      return;
+    }
+
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    final hs = HealthService();
+
     try {
-      await auth.login(_emailCtr.text.trim(), _nameCtr.text.trim());
-      if (auth.user != null) {
-        Navigator.pushReplacementNamed(context, '/home');
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Login failed: $e')));
+      final uid = await hs.loginAndSync(
+        email: email,
+        backendBase: widget.backendBase,
+        authToken: widget.authToken,
+        // lookbackWindowIfNull: const Duration(days: 30), // optional
+      );
+
+      debugPrint('loginAndSync succeeded. userId returned: $uid');
+
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => MainScaffold(initialUserId: uid, backendBase: widget.backendBase),
+        ),
+      );
+    } catch (err) {
+      setState(() {
+        _error = err.toString();
+      });
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _onSkipPressed() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    final hs = HealthService();
+    try {
+      // Provision anonymous user (fallback path)
+      final uid = await hs.createOrGetUserByEmail(widget.backendBase, '');
+      debugPrint('Anonymous provisioning gave userId: $uid');
+
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => MainScaffold(initialUserId: uid, backendBase: widget.backendBase)),
+      );
+    } catch (err) {
+      setState(() => _error = 'Anonymous provisioning failed: $err');
+    } finally {
+      if (mounted) setState(() => _loading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final loading = context.watch<AuthProvider>().loading;
     return Scaffold(
-      appBar: AppBar(title: Text('Zeno — Login')),
+      appBar: AppBar(title: const Text('Sign in')),
       body: Padding(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            TextField(controller: _emailCtr, decoration: InputDecoration(labelText: 'Email')),
-            SizedBox(height: 12),
-            TextField(controller: _nameCtr, decoration: InputDecoration(labelText: 'Name')),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: loading ? null : _submit,
-              child: loading ? CircularProgressIndicator(color: Colors.white) : Text('Login / Register'),
-            )
+            const SizedBox(height: 12),
+            TextField(
+              controller: _emailCtrl,
+              keyboardType: TextInputType.emailAddress,
+              decoration: const InputDecoration(labelText: 'Email', hintText: 'you@example.com'),
+            ),
+            const SizedBox(height: 16),
+            if (_error != null) ...[
+              Text(_error!, style: const TextStyle(color: Colors.red)),
+              const SizedBox(height: 12),
+            ],
+            ElevatedButton.icon(
+              onPressed: _loading ? null : _onSignInPressed,
+              icon: _loading ? const SizedBox.shrink() : const Icon(Icons.login),
+              label: _loading ? const Text('Signing & syncing…') : const Text('Sign in & Sync'),
+            ),
+            const SizedBox(height: 8),
+            TextButton(onPressed: _loading ? null : _onSkipPressed, child: const Text('Skip (anonymous)')),
           ],
         ),
       ),

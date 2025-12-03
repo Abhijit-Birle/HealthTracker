@@ -13,17 +13,27 @@ class FuturisticSlider extends StatelessWidget {
     required this.color,
     required this.onChanged,
     required this.onStart,
-    required this.onEnd
+    required this.onEnd,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Slider(
+    return SliderTheme(
+      data: SliderTheme.of(context).copyWith(
+        activeTrackColor: color,
+        inactiveTrackColor: color.withOpacity(0.2),
+        thumbColor: Colors.white,
+        overlayColor: color.withOpacity(0.3),
+        trackHeight: 4.0,
+        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8.0),
+        overlayShape: const RoundSliderOverlayShape(overlayRadius: 16.0),
+      ),
+      child: Slider(
         value: value,
         onChanged: onChanged,
-        activeColor: color,
         onChangeStart: (_) => onStart(),
-        onChangeEnd: (_) => onEnd()
+        onChangeEnd: (_) => onEnd(),
+      ),
     );
   }
 }

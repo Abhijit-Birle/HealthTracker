@@ -26,10 +26,16 @@ class EnergySystem {
     int prevLimit = 0;
     int nextLimit = 100;
 
-    if (energy >= stateOverdrive) { prevLimit = stateOverdrive; nextLimit = stateQuantum; }
-    else if (energy >= stateCharged) { prevLimit = stateCharged; nextLimit = stateOverdrive; }
-    else if (energy >= stateActive) { prevLimit = stateActive; nextLimit = stateCharged; }
-
+    if (energy >= stateOverdrive) {
+      prevLimit = stateOverdrive;
+      nextLimit = stateQuantum;
+    } else if (energy >= stateCharged) {
+      prevLimit = stateCharged;
+      nextLimit = stateOverdrive;
+    } else if (energy >= stateActive) {
+      prevLimit = stateActive;
+      nextLimit = stateCharged;
+    }
     return (energy - prevLimit) / (nextLimit - prevLimit);
   }
 }
