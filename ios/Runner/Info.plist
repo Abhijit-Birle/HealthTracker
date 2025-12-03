@@ -56,6 +56,11 @@
 	<!-- Photo library permission -->
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>We need access to your photos to log meals.</string>
+    <key>NSAppTransportSecurity</key>
+    <dict>
+      <key>NSAllowsArbitraryLoads</key>
+      <true/>
+    </dict>
 
 </dict>
 </plist>
